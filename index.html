@@ -2,11 +2,11 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>コリドール — 2人対戦</title>
+<title>コリドール — CPU対戦</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23202020'/%3E%3Ccircle cx='11' cy='11' r='6' fill='%23b4b4b4'/%3E%3Cpath d='M8 23h19' stroke='%23eeeeee' stroke-width='4'/%3E%3C/svg%3E">
 <style>
 :root{color-scheme:dark;--ink:#eeeeee;--muted:#b4b4b4;--page:#202020;--surface:#303030;--tile:#353535;font-family:ui-monospace,"SFMono-Regular",Consolas,"Noto Sans JP",monospace;background:var(--page);color:var(--ink)}
-*{box-sizing:border-box}body{margin:0}button{font:inherit;cursor:pointer;touch-action:manipulation}button:focus-visible,summary:focus-visible{outline:3px solid var(--ink);outline-offset:4px}button:disabled{cursor:default}main{max-width:608px;margin:auto;padding:24px}header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--ink);padding-bottom:14px;margin-bottom:8px}h1{font-size:26px;margin:0;letter-spacing:.12em}header span{font-size:14px;color:var(--muted)}
+*{box-sizing:border-box}body{margin:0}button{font:inherit;cursor:pointer;touch-action:manipulation}button:focus-visible,summary:focus-visible{outline:3px solid var(--ink);outline-offset:4px}button:disabled{cursor:default}select{font:inherit;font-size:14px;min-height:40px;padding:6px 8px;border:2px solid var(--muted);border-radius:0;background:var(--surface);color:var(--ink)}select:focus-visible{outline:3px solid var(--ink);outline-offset:3px}main{max-width:608px;margin:auto;padding:24px}header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--ink);padding-bottom:14px;margin-bottom:8px}h1{font-size:26px;margin:0;letter-spacing:.12em}header span{font-size:14px;color:var(--muted)}
 .toolbar{padding:10px 0 0;margin:0}.turn{font-size:21px;font-weight:800;margin:12px 0 16px}.controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.mode{border:2px solid var(--muted);border-radius:0;background:var(--surface);color:var(--ink);min-height:48px;text-align:center;padding:10px 8px;font-size:15px;font-weight:700;box-shadow:3px 3px 0 #101010}.mode:hover:not(:disabled){background:var(--tile)}.mode.selected{background:var(--ink);border-color:var(--ink);color:var(--page);box-shadow:3px 3px 0 var(--muted)}.mode:active:not(:disabled){transform:translate(2px,2px);box-shadow:1px 1px 0 #101010}.mode:disabled{opacity:.4}.message{min-height:1.7em;font-size:14px;line-height:1.7;margin:10px 0 0;color:var(--muted)}.message.error{color:var(--ink);font-weight:700}
 .layout{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:start}.play{min-width:0}.goal{height:8px;margin:8px 0;background:var(--muted)}.goal.bottom{background:var(--ink)}.board{position:relative;aspect-ratio:1;width:100%;background:var(--page);border:10px solid var(--surface);outline:2px solid var(--muted);outline-offset:2px;touch-action:manipulation}.cell{position:absolute;width:9.434%;height:9.434%;border:0;border-radius:0;background:var(--tile);display:grid;place-items:center;padding:0}.cell.legal{outline:2px solid var(--muted);outline-offset:-2px}.cell.legal:after{content:"";width:15%;height:15%;background:var(--ink)}.cell.legal:hover{background:#454545}/* Each PNG is a 96x48 sheet: closed feet on the left, open feet on the right. */
 .pawn{position:relative;display:block;width:min(48px,100%);aspect-ratio:1;overflow:hidden;background:transparent;image-rendering:pixelated;pointer-events:none}
@@ -21,7 +21,7 @@
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
 </style>
 </head><body><main>
-<header><h1>コリドール</h1><span>2人対戦</span></header>
+<header><h1>コリドール</h1><select id="game-type" aria-label="対戦相手"><option value="cpu">CPU対戦</option><option value="human">2人対戦</option></select></header>
 <div id="turn" class="turn" aria-live="polite"></div>
 
 <div class="layout"><section class="play" aria-label="ゲーム盤">
@@ -31,14 +31,14 @@
 <p id="message" class="message" role="status"></p>
 </section>
 </section><aside class="panel">
-<div class="players"><div id="player0" class="player" style="--tone:#b4b4b4"><b>● プレイヤー1</b><strong id="count0">10</strong><small>枚の壁</small></div><div id="player1" class="player" style="--tone:#eeeeee"><b>● プレイヤー2</b><strong id="count1">10</strong><small>枚の壁</small></div></div>
+<div class="players"><div id="player0" class="player" style="--tone:#b4b4b4"><b id="name0">● あなた</b><strong id="count0">10</strong><small>枚の壁</small></div><div id="player1" class="player" style="--tone:#eeeeee"><b id="name1">● CPU</b><strong id="count1">10</strong><small>枚の壁</small></div></div>
 <div class="secondary"><button id="undo">1手戻す</button><button id="reset">最初から</button></div>
-<details><summary>遊び方</summary><p>灰色の駒は上の灰色の帯、白色の駒は下の白い帯を目指します。先に到達させた人が勝ち。1手で「駒の移動」か「壁1枚の設置」を選びます。</p><p>駒は上下左右へ1マス移動。相手が隣にいるときは飛び越えられます。相手の後ろが壁や盤面の端なら、相手の横へ回り込めます。</p><p>壁は2マス分。重なりや交差は不可で、どちらかのゴールへの道を完全に塞ぐこともできません。</p><p>壁モードではマスの間の「＋」を押して設置します。PCではマウスを重ねると置く位置が見えます。</p></details>
-</aside></div><div class="footer">コリドール · 2人対戦</div></main>
+<details><summary>遊び方</summary><p>CPU対戦では、あなたが灰色、CPUが白色です。「1手戻す」であなたの前の手番まで戻せます。対戦相手は右上で切り替えられます。</p><p>灰色の駒は上の灰色の帯、白色の駒は下の白い帯を目指します。先に到達させた人が勝ち。1手で「駒の移動」か「壁1枚の設置」を選びます。</p><p>駒は上下左右へ1マス移動。相手が隣にいるときは飛び越えられます。相手の後ろが壁や盤面の端なら、相手の横へ回り込めます。</p><p>壁は2マス分。重なりや交差は不可で、どちらかのゴールへの道を完全に塞ぐこともできません。</p><p>壁モードではマスの間の「＋」を押して設置します。PCではマウスを重ねると置く位置が見えます。</p></details>
+</aside></div><div class="footer">コリドール</div></main>
 <script>
 'use strict';
 const N=9, dirs=[[1,0],[-1,0],[0,1],[0,-1]];
-let state, history=[], mode='move', moving=false;
+let state, history=[], mode='move', moving=false, gameType='cpu', cpuTimer=null;
 const board=document.getElementById('board'), message=document.getElementById('message');
 const inside=(r,c)=>r>=0&&r<N&&c>=0&&c<N;
 function fresh(){return {pawns:[{r:8,c:4},{r:0,c:4}],facing:['right','left'],remaining:[10,10],walls:[],turn:0,winner:null};}
@@ -69,9 +69,11 @@ function wallError(w,s=state){
 }
 function tell(text,error=false){message.textContent=text;message.classList.toggle('error',error);}
 function save(){history.push(JSON.parse(JSON.stringify(state)));}
-function finish(){const player=state.turn;if(state.pawns[player].r===(player===0?0:8))state.winner=player;else state.turn=1-player;mode='move';render();}
-async function moveTo(r,c){
- if(moving||state.winner!==null||mode!=='move')return;
+function isCpuTurn(){return gameType==='cpu'&&state.turn===1&&state.winner===null;}
+function cancelCpu(){if(cpuTimer!==null)clearTimeout(cpuTimer);cpuTimer=null;}
+function finish(){const player=state.turn;if(state.pawns[player].r===(player===0?0:8))state.winner=player;else state.turn=1-player;mode='move';render();scheduleCpu();}
+async function moveTo(r,c,byCpu=false){
+ if(moving||state.winner!==null||mode!=='move'||(isCpuTurn()&&!byCpu))return;
  if(!moves().some(p=>p.r===r&&p.c===c)){tell('目印のあるマスに移動できます。',true);return;}
  save();const player=state.turn,previous=state.pawns[player];
  if(c<previous.c)state.facing[player]='left';else if(c>previous.c)state.facing[player]='right';
@@ -79,7 +81,7 @@ async function moveTo(r,c){
  board.querySelectorAll('button').forEach(btn=>btn.disabled=true);
  board.querySelectorAll('.legal').forEach(el=>el.classList.remove('legal'));
  document.querySelectorAll('[data-mode]').forEach(btn=>btn.disabled=true);
- document.getElementById('undo').disabled=true;document.getElementById('reset').disabled=true;
+ document.getElementById('undo').disabled=true;document.getElementById('reset').disabled=true;document.getElementById('game-type').disabled=true;
  tell('移動中…');
  const pawn=board.querySelector('.pawn.p'+player);
  try{
@@ -99,30 +101,86 @@ async function moveTo(r,c){
  }catch(error){/* Complete the legal move even if the browser cancels its animation. */}
  finally{state.pawns[player]={r,c};moving=false;finish();}
 }
-function place(w){if(moving)return;const error=wallError(w);if(error){tell(error,true);return;}save();state.walls.push(w);state.remaining[state.turn]--;finish();}
+function place(w,byCpu=false){if(moving||(isCpuTurn()&&!byCpu))return;const error=wallError(w);if(error){tell(error,true);return;}save();state.walls.push(w);state.remaining[state.turn]--;finish();}
 function position(el,x,y){el.style.left=(x/106*100)+'%';el.style.top=(y/106*100)+'%';}
 function wallElement(w,ghost=false,bad=false){const el=document.createElement('div');el.className='wall '+w.o+(ghost?' ghost':'')+(bad?' bad':'');position(el,w.c*12+(w.o==='v'?10:0),w.r*12+(w.o==='h'?10:0));if(ghost)el.id='ghost';return el;}
 function clearGhost(){document.getElementById('ghost')?.remove();}
 function preview(w){clearGhost();board.append(wallElement(w,true,!!wallError(w)));}
 function render(){
- board.replaceChildren();const legal=moves();
+ board.replaceChildren();const legal=moves(),locked=moving||isCpuTurn();
  for(let r=0;r<9;r++)for(let c=0;c<9;c++){
   const el=document.createElement('button');el.className='cell';position(el,c*12,r*12);el.setAttribute('aria-label',`${r+1}行${c+1}列`);const player=state.pawns.findIndex(p=>p.r===r&&p.c===c);
   if(player>=0){const pawn=document.createElement('span');pawn.className='pawn p'+player+' face-'+state.facing[player];const sprite=document.createElement('img');sprite.className='sprite';sprite.src=player===0?'gray_mouse.png':'white_mouse.png';sprite.alt='';sprite.draggable=false;pawn.append(sprite);el.append(pawn);el.setAttribute('aria-label',`プレイヤー${player+1}の駒、${r+1}行${c+1}列`);}
-  const canMove=state.winner===null&&mode==='move'&&legal.some(p=>p.r===r&&p.c===c);if(canMove)el.classList.add('legal');el.disabled=!canMove;el.onclick=()=>moveTo(r,c);board.append(el);
+  const canMove=!locked&&state.winner===null&&mode==='move'&&legal.some(p=>p.r===r&&p.c===c);if(canMove)el.classList.add('legal');el.disabled=!canMove;el.onclick=()=>moveTo(r,c);board.append(el);
  }
  state.walls.forEach(w=>board.append(wallElement(w)));
- if(mode!=='move'&&state.winner===null)for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+ if(!locked&&mode!=='move'&&state.winner===null)for(let r=0;r<8;r++)for(let c=0;c<8;c++){
   const w={r,c,o:mode},el=document.createElement('button');el.className='anchor';el.textContent='+';position(el,c*12+11,r*12+11);el.setAttribute('aria-label',`${r+1}行${c+1}列を起点に${mode==='h'?'横':'縦'}の壁を置く`);el.onclick=()=>place(w);el.onmouseenter=()=>preview(w);el.onmouseleave=clearGhost;el.onfocus=()=>preview(w);el.onblur=clearGhost;board.append(el);
  }
- document.getElementById('turn').textContent=state.winner===null?`プレイヤー${state.turn+1}の番`:`プレイヤー${state.winner+1}の勝ち！`;
+ const names=gameType==='cpu'?['あなた','CPU']:['プレイヤー1','プレイヤー2'];
+ document.getElementById('turn').textContent=state.winner===null?(isCpuTurn()?'CPUが考えています…':`${names[state.turn]}の番`):`${names[state.winner]}の勝ち！`;
+ document.getElementById('name0').textContent='● '+names[0];document.getElementById('name1').textContent='● '+names[1];
+ document.getElementById('game-type').disabled=moving;document.getElementById('game-type').value=gameType;document.getElementById('undo').textContent=gameType==='cpu'?'前の手番に戻す':'1手戻す';
  for(let i=0;i<2;i++){document.getElementById('count'+i).textContent=state.remaining[i];document.getElementById('player'+i).classList.toggle('active',i===(state.winner??state.turn));}
- document.querySelectorAll('[data-mode]').forEach(btn=>{btn.classList.toggle('selected',btn.dataset.mode===mode);btn.setAttribute('aria-pressed',btn.dataset.mode===mode);btn.disabled=state.winner!==null||(btn.dataset.mode!=='move'&&!state.remaining[state.turn]);});
+ document.querySelectorAll('[data-mode]').forEach(btn=>{btn.classList.toggle('selected',btn.dataset.mode===mode);btn.setAttribute('aria-pressed',btn.dataset.mode===mode);btn.disabled=locked||state.winner!==null||(btn.dataset.mode!=='move'&&!state.remaining[state.turn]);});
  document.getElementById('undo').disabled=moving||!history.length;document.getElementById('reset').disabled=moving;
- tell(state.winner!==null?'ゴールに到達しました。「最初から」でまた遊べます。':mode==='move'?'目印のあるマスを押して、駒を動かしてください。':`${mode==='h'?'横':'縦'}の壁を置きます。マスの間の「＋」を押してください。`);
+ tell(isCpuTurn()?'CPUが手を選んでいます。':state.winner!==null?'ゴールに到達しました。「最初から」でまた遊べます。':mode==='move'?'目印のあるマスを押して、駒を動かしてください。':`${mode==='h'?'横':'縦'}の壁を置きます。マスの間の「＋」を押してください。`);
 }
-document.querySelectorAll('[data-mode]').forEach(btn=>btn.onclick=()=>{if(moving)return;mode=btn.dataset.mode;render();});
-document.getElementById('undo').onclick=()=>{if(moving)return;if(history.length){state=history.pop();mode='move';render();}};
-document.getElementById('reset').onclick=()=>{if(moving)return;if(history.length&&!confirm('対局を最初からやり直しますか？'))return;state=fresh();history=[];mode='move';render();};
+document.querySelectorAll('[data-mode]').forEach(btn=>btn.onclick=()=>{if(moving||isCpuTurn())return;mode=btn.dataset.mode;render();});
+document.getElementById('undo').onclick=()=>{if(moving||!history.length)return;cancelCpu();state=history.pop();if(gameType==='cpu')while(state.turn!==0&&history.length)state=history.pop();mode='move';render();};
+document.getElementById('reset').onclick=()=>{if(moving)return;if(history.length&&!confirm('対局を最初からやり直しますか？'))return;cancelCpu();state=fresh();history=[];mode='move';render();};
+// Count moves to the goal, including jumps around the other pawn.
+function goalDistance(s,player){
+ const goal=player===0?0:8,queue=[s.pawns[player]],distance=new Int16Array(81).fill(-1);
+ distance[queue[0].r*9+queue[0].c]=0;
+ for(let i=0;i<queue.length;i++){
+  const a=queue[i],d=distance[a.r*9+a.c];if(a.r===goal)return d;
+  const pawns=s.pawns.slice();pawns[player]=a;
+  for(const b of moves({...s,turn:player,pawns})){const key=b.r*9+b.c;if(distance[key]===-1){distance[key]=d+1;queue.push(b);}}
+ }
+ return 81;
+}
+function afterAction(s,action){
+ const next={...s,pawns:s.pawns.map(p=>({...p})),remaining:s.remaining.slice(),walls:s.walls.slice()};
+ if(action.type==='move')next.pawns[s.turn]={r:action.r,c:action.c};
+ else{next.walls.push(action.wall);next.remaining[s.turn]--;}
+ return next;
+}
+function chooseCpuAction(s,recent=history){
+ const player=s.turn,enemy=1-player,goal=player===0?0:8;
+ const candidates=moves(s).map(p=>({type:'move',...p}));
+ const winning=candidates.find(a=>a.r===goal);if(winning)return winning;
+ if(s.remaining[player]>0)for(let r=0;r<8;r++)for(let c=0;c<8;c++)for(const o of ['h','v']){
+  const wall={r,c,o};if(!wallError(wall,s))candidates.push({type:'wall',wall});
+ }
+ let best=candidates[0],bestScore=-Infinity;
+ for(const action of candidates){
+  const next=afterAction(s,action),own=goalDistance(next,player),opponent=goalDistance(next,enemy);
+  let score=opponent-own+.12*(next.remaining[player]-next.remaining[enemy]);
+  // Avoid allowing an immediate win, and save walls unless they buy useful time.
+  if(moves({...next,turn:enemy}).some(p=>p.r===(enemy===0?0:8)))score-=10000;
+  if(action.type==='wall')score-=.3;
+  else{
+   score-=.002*Math.abs(action.c-4);
+   score-=.2*recent.slice(-10).filter(h=>h.walls.length===s.walls.length&&h.pawns[player].r===action.r&&h.pawns[player].c===action.c).length;
+  }
+  if(score>bestScore){bestScore=score;best=action;}
+ }
+ return best;
+}
+function scheduleCpu(){
+ cancelCpu();if(!isCpuTurn()||moving)return;
+ const expected=state;
+ cpuTimer=setTimeout(()=>{
+  cpuTimer=null;if(state!==expected||!isCpuTurn()||moving)return;
+  const action=chooseCpuAction(state);
+  if(action.type==='move')moveTo(action.r,action.c,true);else place(action.wall,true);
+ },280);
+}
+document.getElementById('game-type').onchange=event=>{
+ const next=event.target.value;
+ if(moving||(history.length&&!confirm('対戦相手を変更して、最初から始めますか？'))){event.target.value=gameType;return;}
+ cancelCpu();gameType=next;state=fresh();history=[];mode='move';render();
+};
 state=fresh();render();
 </script></body></html>
