@@ -1,186 +1,43 @@
 <!doctype html>
-<html lang="ja">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>コリドール — CPU対戦</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23202020'/%3E%3Ccircle cx='11' cy='11' r='6' fill='%23b4b4b4'/%3E%3Cpath d='M8 23h19' stroke='%23eeeeee' stroke-width='4'/%3E%3C/svg%3E">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QUORIDOR KIDS — LCD</title>
 <style>
-:root{color-scheme:dark;--ink:#eeeeee;--muted:#b4b4b4;--page:#202020;--surface:#303030;--tile:#353535;font-family:ui-monospace,"SFMono-Regular",Consolas,"Noto Sans JP",monospace;background:var(--page);color:var(--ink)}
-*{box-sizing:border-box}body{margin:0}button{font:inherit;cursor:pointer;touch-action:manipulation}button:focus-visible,summary:focus-visible{outline:3px solid var(--ink);outline-offset:4px}button:disabled{cursor:default}select{font:inherit;font-size:14px;min-height:40px;padding:6px 8px;border:2px solid var(--muted);border-radius:0;background:var(--surface);color:var(--ink)}select:focus-visible{outline:3px solid var(--ink);outline-offset:3px}main{max-width:608px;margin:auto;padding:24px}header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--ink);padding-bottom:14px;margin-bottom:8px}h1{font-size:26px;margin:0;letter-spacing:.12em}header span{font-size:14px;color:var(--muted)}
-.toolbar{padding:10px 0 0;margin:0}.turn{font-size:21px;font-weight:800;margin:12px 0 16px}.controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.mode{border:2px solid var(--muted);border-radius:0;background:var(--surface);color:var(--ink);min-height:48px;text-align:center;padding:10px 8px;font-size:15px;font-weight:700;box-shadow:3px 3px 0 #101010}.mode:hover:not(:disabled){background:var(--tile)}.mode.selected{background:var(--ink);border-color:var(--ink);color:var(--page);box-shadow:3px 3px 0 var(--muted)}.mode:active:not(:disabled){transform:translate(2px,2px);box-shadow:1px 1px 0 #101010}.mode:disabled{opacity:.4}.message{min-height:1.7em;font-size:14px;line-height:1.7;margin:10px 0 0;color:var(--muted)}.message.error{color:var(--ink);font-weight:700}
-.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:start}.play{min-width:0}.goal{height:8px;margin:8px 0;background:var(--muted)}.goal.bottom{background:var(--ink)}.board{position:relative;aspect-ratio:1;width:100%;background:var(--page);border:10px solid var(--surface);outline:2px solid var(--muted);outline-offset:2px;touch-action:manipulation}.cell{position:absolute;width:9.434%;height:9.434%;border:0;border-radius:0;background:var(--tile);display:grid;place-items:center;padding:0}.cell.legal{outline:2px solid var(--muted);outline-offset:-2px}.cell.legal:after{content:"";width:15%;height:15%;background:var(--ink)}.cell.legal:hover{background:#454545}/* Each PNG is a 96x48 sheet: closed feet on the left, open feet on the right. */
-.pawn{position:relative;display:block;width:min(48px,100%);aspect-ratio:1;overflow:hidden;background:transparent;image-rendering:pixelated;pointer-events:none}
-.traveler{position:absolute;width:9.434%;height:9.434%;display:grid;place-items:center;pointer-events:none;z-index:8}
-.pawn.face-right{transform:scaleX(-1)}
-.pawn.face-left{transform:scaleX(1)}
-.pawn .sprite{position:absolute;top:0;left:0;display:block;width:200%;height:100%;max-width:none;image-rendering:pixelated;animation:mouse-step 400ms steps(1,end) infinite}
-@keyframes mouse-step{0%{transform:translateX(0)}50%{transform:translateX(-50%)}100%{transform:translateX(0)}}
-.wall{position:absolute;background:var(--ink);pointer-events:none;z-index:3}.wall.h{width:20.755%;height:1.887%}.wall.v{width:1.887%;height:20.755%}.anchor{position:absolute;width:5.66%;height:5.66%;transform:translate(-50%,-50%);border:0;background:var(--page);color:var(--muted);font-size:20px;font-weight:bold;padding:0;display:grid;place-items:center;z-index:4}.anchor:hover,.anchor:focus-visible{color:var(--page);background:var(--ink)}.ghost{opacity:.75;background:var(--ink);z-index:2}.ghost.bad{opacity:.8;background:repeating-linear-gradient(45deg,var(--ink) 0 3px,var(--page) 3px 6px)}
-.panel{padding-top:0}.players{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}.player{border:2px solid var(--tile);padding:12px;background:var(--surface)}.player.active{border-color:var(--tone);box-shadow:0 4px 0 var(--tone)}.player b{display:block;color:var(--tone);font-size:14px;white-space:nowrap}.player strong{display:inline-block;font-size:28px;margin-top:6px;margin-right:5px}.player small{font-size:14px;color:var(--muted)}.secondary{display:flex;gap:10px}.secondary button{padding:10px 12px;background:var(--surface);border:2px solid var(--muted);color:var(--ink);font-size:14px;box-shadow:2px 2px 0 #101010}.secondary button:hover:not(:disabled){background:var(--tile)}.secondary button:disabled{opacity:.4}details{margin-top:26px;border-top:2px solid var(--tile);padding-top:14px;color:var(--muted);font-size:14px;line-height:1.8}summary{cursor:pointer;color:var(--ink)}details p{margin:10px 0}.footer{text-align:center;color:var(--muted);font-size:13px;margin-top:24px}
-@media(max-width:760px){main{padding:16px 14px}header{padding-bottom:10px}h1{font-size:23px}.toolbar{padding:10px 0 0}.turn{font-size:18px;margin:10px 0 12px}.mode{font-size:14px;min-height:44px;padding:9px 3px}.message{line-height:1.6}.layout{grid-template-columns:1fr;gap:8px}.play{width:100%}.board{border-width:8px}.panel{padding-top:0}.players{margin-bottom:16px}.player{padding:10px 12px}.player strong{font-size:24px}details{margin-top:20px}.footer{margin-top:20px}}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
-</style>
-</head><body><main>
-<header><h1>コリドール</h1><select id="game-type" aria-label="対戦相手"><option value="cpu">CPU対戦</option><option value="human">2人対戦</option></select></header>
-<div id="turn" class="turn" aria-live="polite"></div>
-
-<div class="layout"><section class="play" aria-label="ゲーム盤">
-<div class="goal top" role="img" aria-label="灰色の駒・プレイヤー1のゴール" title="プレイヤー1のゴール"></div><div id="board" class="board" aria-label="9×9の盤面"></div><div class="goal bottom" role="img" aria-label="白色の駒・プレイヤー2のゴール" title="プレイヤー2のゴール"></div>
-<section class="toolbar" aria-label="対局の操作">
-<div class="controls" aria-label="操作モード"><button class="mode" data-mode="move">駒を動かす</button><button class="mode" data-mode="h">横の壁を置く</button><button class="mode" data-mode="v">縦の壁を置く</button></div>
-<p id="message" class="message" role="status"></p>
-</section>
-</section><aside class="panel">
-<div class="players"><div id="player0" class="player" style="--tone:#b4b4b4"><b id="name0">● あなた</b><strong id="count0">10</strong><small>枚の壁</small></div><div id="player1" class="player" style="--tone:#eeeeee"><b id="name1">● CPU</b><strong id="count1">10</strong><small>枚の壁</small></div></div>
-<div class="secondary"><button id="undo">1手戻す</button><button id="reset">最初から</button></div>
-<details><summary>遊び方</summary><p>CPU対戦では、あなたが灰色、CPUが白色です。「1手戻す」であなたの前の手番まで戻せます。対戦相手は右上で切り替えられます。</p><p>灰色の駒は上の灰色の帯、白色の駒は下の白い帯を目指します。先に到達させた人が勝ち。1手で「駒の移動」か「壁1枚の設置」を選びます。</p><p>駒は上下左右へ1マス移動。相手が隣にいるときは飛び越えられます。相手の後ろが壁や盤面の端なら、相手の横へ回り込めます。</p><p>壁は2マス分。重なりや交差は不可で、どちらかのゴールへの道を完全に塞ぐこともできません。</p><p>壁モードではマスの間の「＋」を押して設置します。PCではマウスを重ねると置く位置が見えます。</p></details>
-</aside></div><div class="footer">コリドール</div></main>
+:root{--ink:#384837;--lcd:#bcc99b;--red:#d95757;--black:#30332d;--shadow:#8e9c77;--blue:#4669a6;--yellow:#ffb600}*{box-sizing:border-box}body{margin:0;background:#eeeee7;color:#363933;font-family:ui-monospace,'Courier New',monospace;padding:24px 12px 40px}button,select{font:inherit;cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid var(--red);outline-offset:3px}header{display:flex;justify-content:space-between;align-items:center;margin-bottom:17px;gap:12px}.brand{font-size:19px;font-weight:900;letter-spacing:2px}select{border:0;background:#cac6bb;border-radius:5px;padding:8px;font-size:12px;color:#454941}.screen{background:var(--lcd);border:2px solid #2e372b;padding:12px 14px;box-shadow:inset 3px 4px 8px #52604560;color:var(--ink);position:relative}.status{display:flex;align-items:center;gap:24px;font-size:19px;min-height:25px;margin-bottom:10px;font-weight:bold}.goal{height:5px;background:var(--black);margin:3px 0 7px;opacity:.8}.goal.bottom{background:var(--red);margin:7px 0 3px}.board{width:100%;aspect-ratio:1;position:relative;touch-action:manipulation;isolation:isolate}.cell{position:absolute;background:#65765335;border:1px solid #5363424a;padding:0;border-radius:1px}.cell.legal:after{content:'';position:absolute;width:7px;height:7px;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--ink);opacity:.6}.cell.legal:hover{background:#65765365}.wall{position:absolute;background:var(--ink);pointer-events:none;box-shadow:1px 1px #e3e8c133}.slot{position:absolute;border:0;padding:0;background:transparent;z-index:4}.slot:hover{background:#38483766}.slot.bad:hover{background:#d9575780}.pawn{position:absolute;z-index:6;width:10%;height:10%;pointer-events:none;display:grid;place-items:center;filter:drop-shadow(2px 2px 0 var(--shadow))}.sprite{width:100%;height:100%;background-size:200% 100%;background-repeat:no-repeat;image-rendering:pixelated;background-position:0 0}.pawn.stepping .sprite{animation:step 1.2s steps(1) infinite}.pawn.right .sprite{transform:scaleX(-1)}@keyframes step{50%{background-position:100% 0}}.fallback{width:60%;height:46%;background:var(--black);border-radius:45% 55% 30% 30%;position:absolute}.fallback:before{content:'';position:absolute;width:45%;height:65%;top:-38%;left:12%;background:inherit;border-radius:50%}.fallback:after{content:'';position:absolute;left:-35%;top:65%;width:40%;height:3px;background:inherit}.pawn[data-player="1"] .fallback{background:var(--red)}.controls{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0 15px}.controls button{border:1px solid #a5ac98;border-radius:3px;background:transparent;min-height:48px;color:#454d42}.controls button.active{background:#535e50;color:#f0f0dc}.controls button:active{background:#73806a}.symbol{display:block;font-size:26px;line-height:30px}.footer{display:flex;align-items:center;justify-content:space-between;margin-top:18px}.minor{display:flex;gap:10px}.minor button{background:transparent;border:1px solid #a5ac98;border-radius:3px;padding:8px 14px;font-size:12px;color:#454d42}.message{text-align:center;font-size:11px;min-height:18px;margin:16px 0 0;color:#65695e}.help{max-width:550px;margin:22px auto 0;font-size:11px;line-height:1.9;color:#72766a}button:disabled{cursor:default;opacity:.5}@media(max-width:450px){body{padding:12px 8px 25px}.screen{padding:9px}.brand{font-size:16px}.controls{gap:8px;margin-top:16px}.controls button{border:1px solid #a5ac98;border-radius:3px;background:transparent;min-height:48px;color:#454d42}}@media(prefers-reduced-motion:reduce){.pawn.stepping .sprite{animation:none}}
+.machine{max-width:520px;margin:auto}.wall-count{display:flex;align-items:center;gap:7px}.count-square{display:inline-block;width:12px;height:12px;border:2px solid var(--ink)}.count-square.black{background:var(--black);border-color:var(--black)}.count-square.red{background:var(--red);border-color:var(--red)}.help{max-width:520px}.message:empty{display:none}@media(max-width:450px){body{padding:16px 12px 25px}.brand{font-size:15px;letter-spacing:1px}header{gap:8px}select{font-size:11px}}
+.arena{display:grid;grid-template-columns:5px minmax(0,1fr) 5px;gap:7px;align-items:stretch}.arena .board{grid-column:2;grid-row:1}.goal.side{height:auto;margin:0;grid-row:1}.yellow-goal{grid-column:1;background:var(--yellow)}.blue-goal{grid-column:3;background:var(--blue)}.goal[hidden]{display:block;visibility:hidden}.pawn[data-player="2"] .fallback{background:var(--blue)}.pawn[data-player="3"] .fallback{background:var(--yellow)}.count-square.blue{background:var(--blue);border-color:var(--blue)}.count-square.yellow{background:var(--yellow);border-color:var(--yellow)}
+</style></head><body>
+<main class="machine"><header><div><div class="brand">QUORIDOR KIDS</div></div><select id="opponent" aria-label="Opponent"><option value="cpu">vs CPU</option><option value="human">2 Players</option><option value="three">3 Players</option><option value="four">4 Players</option></select></header>
+<section class="screen" aria-label="LCD game screen"><div class="status" id="stocks" aria-label="Walls remaining" aria-live="polite"></div><div class="goal" aria-label="Black goal"></div><div class="arena"><div class="goal side yellow-goal" id="yellowGoal" aria-label="Yellow goal" hidden></div><div class="board" id="board" aria-label="7 by 7 board"></div><div class="goal side blue-goal" id="blueGoal" aria-label="Blue goal" hidden></div></div><div class="goal bottom" aria-label="Red goal"></div></section>
+<div class="controls" aria-label="Controls"><button data-mode="move" class="active" aria-label="Move" title="Move"><span class="symbol" aria-hidden="true">✥</span></button><button data-mode="h" aria-label="Horizontal wall" title="Horizontal wall"><span class="symbol" aria-hidden="true">━</span></button><button data-mode="v" aria-label="Vertical wall" title="Vertical wall"><span class="symbol" aria-hidden="true">┃</span></button></div>
+<div class="footer"><div class="minor"><button id="undo">Undo</button><button id="reset">Reset</button></div></div><p class="message" id="message" aria-live="polite"></p></main>
+<details class="help" lang="ja"><summary>遊び方</summary><p>CPU対戦では黒が自分、赤が相手です。黒は上の黒い帯、赤は下の赤い帯を目指そう。3人・4人対戦では青は右、黄色は左の同じ色の帯を目指します。先手は毎回ランダム。その後は黒→赤→青→黄の順で、参加している色に手番が回ります。手番の駒だけが足踏みします。壁は2マス分で、2人戦は各8枚、3人戦は各5枚、4人戦は各4枚。全員にゴールへの道が残る場所に置けます。隣の駒を1体だけ飛び越せます。背後が壁や盤外なら横に回り込めますが、別の駒がいるマスや2体を続けて飛び越す移動はできません。</p></details>
 <script>
 'use strict';
-const N=9, dirs=[[1,0],[-1,0],[0,1],[0,-1]];
-let state, history=[], mode='move', moving=false, gameType='cpu', cpuTimer=null;
-const board=document.getElementById('board'), message=document.getElementById('message');
-const inside=(r,c)=>r>=0&&r<N&&c>=0&&c<N;
-function fresh(){return {pawns:[{r:8,c:4},{r:0,c:4}],facing:['right','left'],remaining:[10,10],walls:[],turn:0,winner:null};}
-function blocked(a,b,walls=state.walls){
- if(a.r!==b.r){const r=Math.min(a.r,b.r);return walls.some(w=>w.o==='h'&&w.r===r&&(a.c===w.c||a.c===w.c+1));}
- const c=Math.min(a.c,b.c);return walls.some(w=>w.o==='v'&&w.c===c&&(a.r===w.r||a.r===w.r+1));
-}
-function moves(s=state){
- const me=s.pawns[s.turn],other=s.pawns[1-s.turn],out=[];
- for(const [dr,dc] of dirs){const next={r:me.r+dr,c:me.c+dc};if(!inside(next.r,next.c)||blocked(me,next,s.walls))continue;
-  if(next.r!==other.r||next.c!==other.c){out.push(next);continue;}
-  const jump={r:next.r+dr,c:next.c+dc};
-  if(inside(jump.r,jump.c)&&!blocked(next,jump,s.walls))out.push(jump);
-  else for(const [sr,sc] of (dr!==0?[[0,1],[0,-1]]:[[1,0],[-1,0]])){const side={r:next.r+sr,c:next.c+sc};if(inside(side.r,side.c)&&!blocked(next,side,s.walls))out.push(side);}
- }
- return out.filter((p,i)=>out.findIndex(q=>q.r===p.r&&q.c===p.c)===i);
-}
-function hasPath(start,goal,walls){
- const queue=[start],seen=new Set([start.r*9+start.c]);
- for(let i=0;i<queue.length;i++){const a=queue[i];if(a.r===goal)return true;for(const [dr,dc] of dirs){const b={r:a.r+dr,c:a.c+dc},key=b.r*9+b.c;if(inside(b.r,b.c)&&!seen.has(key)&&!blocked(a,b,walls)){seen.add(key);queue.push(b);}}}return false;
-}
-function wallError(w,s=state){
- if(s.winner!==null)return 'ゲームは終了しています。';
- if(!s.remaining[s.turn])return '壁を使い切りました。駒を動かしてください。';
- if(!['h','v'].includes(w.o)||w.r<0||w.r>7||w.c<0||w.c>7)return '盤面の外には置けません。';
- for(const a of s.walls){if(a.o!==w.o&&a.r===w.r&&a.c===w.c)return '壁を交差させることはできません。';if(a.o===w.o&&(w.o==='h'?a.r===w.r&&Math.abs(a.c-w.c)<=1:a.c===w.c&&Math.abs(a.r-w.r)<=1))return 'ほかの壁と重なっています。';}
- const walls=[...s.walls,w];if(!hasPath(s.pawns[0],0,walls)||!hasPath(s.pawns[1],8,walls))return 'ゴールへの道を完全に塞ぐことはできません。';return '';
-}
-function tell(text,error=false){message.textContent=text;message.classList.toggle('error',error);}
-function save(){history.push(JSON.parse(JSON.stringify(state)));}
-function isCpuTurn(){return gameType==='cpu'&&state.turn===1&&state.winner===null;}
-function cancelCpu(){if(cpuTimer!==null)clearTimeout(cpuTimer);cpuTimer=null;}
-function finish(){const player=state.turn;if(state.pawns[player].r===(player===0?0:8))state.winner=player;else state.turn=1-player;mode='move';render();scheduleCpu();}
-async function moveTo(r,c,byCpu=false){
- if(moving||state.winner!==null||mode!=='move'||(isCpuTurn()&&!byCpu))return;
- if(!moves().some(p=>p.r===r&&p.c===c)){tell('目印のあるマスに移動できます。',true);return;}
- save();const player=state.turn,previous=state.pawns[player];
- if(c<previous.c)state.facing[player]='left';else if(c>previous.c)state.facing[player]='right';
- moving=true;
- board.querySelectorAll('button').forEach(btn=>btn.disabled=true);
- board.querySelectorAll('.legal').forEach(el=>el.classList.remove('legal'));
- document.querySelectorAll('[data-mode]').forEach(btn=>btn.disabled=true);
- document.getElementById('undo').disabled=true;document.getElementById('reset').disabled=true;document.getElementById('game-type').disabled=true;
- tell('移動中…');
- const pawn=board.querySelector('.pawn.p'+player);
- try{
-  if(pawn){
-   pawn.className='pawn p'+player+' face-'+state.facing[player];
-   const traveler=document.createElement('div');traveler.className='traveler';
-   position(traveler,previous.c*12,previous.r*12);traveler.append(pawn);board.append(traveler);
-   const duration=window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:Math.min(600,400*Math.hypot(r-previous.r,c-previous.c));
-   if(duration>0){
-    const motion=traveler.animate([
-     {left:(previous.c*12/106*100)+'%',top:(previous.r*12/106*100)+'%'},
-     {left:(c*12/106*100)+'%',top:(r*12/106*100)+'%'}
-    ],{duration,easing:'linear',fill:'forwards'});
-    await motion.finished;
-   }
-  }
- }catch(error){/* Complete the legal move even if the browser cancels its animation. */}
- finally{state.pawns[player]={r,c};moving=false;finish();}
-}
-function place(w,byCpu=false){if(moving||(isCpuTurn()&&!byCpu))return;const error=wallError(w);if(error){tell(error,true);return;}save();state.walls.push(w);state.remaining[state.turn]--;finish();}
-function position(el,x,y){el.style.left=(x/106*100)+'%';el.style.top=(y/106*100)+'%';}
-function wallElement(w,ghost=false,bad=false){const el=document.createElement('div');el.className='wall '+w.o+(ghost?' ghost':'')+(bad?' bad':'');position(el,w.c*12+(w.o==='v'?10:0),w.r*12+(w.o==='h'?10:0));if(ghost)el.id='ghost';return el;}
-function clearGhost(){document.getElementById('ghost')?.remove();}
-function preview(w){clearGhost();board.append(wallElement(w,true,!!wallError(w)));}
-function render(){
- board.replaceChildren();const legal=moves(),locked=moving||isCpuTurn();
- for(let r=0;r<9;r++)for(let c=0;c<9;c++){
-  const el=document.createElement('button');el.className='cell';position(el,c*12,r*12);el.setAttribute('aria-label',`${r+1}行${c+1}列`);const player=state.pawns.findIndex(p=>p.r===r&&p.c===c);
-  if(player>=0){const pawn=document.createElement('span');pawn.className='pawn p'+player+' face-'+state.facing[player];const sprite=document.createElement('img');sprite.className='sprite';sprite.src=player===0?'gray_mouse.png':'white_mouse.png';sprite.alt='';sprite.draggable=false;pawn.append(sprite);el.append(pawn);el.setAttribute('aria-label',`プレイヤー${player+1}の駒、${r+1}行${c+1}列`);}
-  const canMove=!locked&&state.winner===null&&mode==='move'&&legal.some(p=>p.r===r&&p.c===c);if(canMove)el.classList.add('legal');el.disabled=!canMove;el.onclick=()=>moveTo(r,c);board.append(el);
- }
- state.walls.forEach(w=>board.append(wallElement(w)));
- if(!locked&&mode!=='move'&&state.winner===null)for(let r=0;r<8;r++)for(let c=0;c<8;c++){
-  const w={r,c,o:mode},el=document.createElement('button');el.className='anchor';el.textContent='+';position(el,c*12+11,r*12+11);el.setAttribute('aria-label',`${r+1}行${c+1}列を起点に${mode==='h'?'横':'縦'}の壁を置く`);el.onclick=()=>place(w);el.onmouseenter=()=>preview(w);el.onmouseleave=clearGhost;el.onfocus=()=>preview(w);el.onblur=clearGhost;board.append(el);
- }
- const names=gameType==='cpu'?['あなた','CPU']:['プレイヤー1','プレイヤー2'];
- document.getElementById('turn').textContent=state.winner===null?(isCpuTurn()?'CPUが考えています…':`${names[state.turn]}の番`):`${names[state.winner]}の勝ち！`;
- document.getElementById('name0').textContent='● '+names[0];document.getElementById('name1').textContent='● '+names[1];
- document.getElementById('game-type').disabled=moving;document.getElementById('game-type').value=gameType;document.getElementById('undo').textContent=gameType==='cpu'?'前の手番に戻す':'1手戻す';
- for(let i=0;i<2;i++){document.getElementById('count'+i).textContent=state.remaining[i];document.getElementById('player'+i).classList.toggle('active',i===(state.winner??state.turn));}
- document.querySelectorAll('[data-mode]').forEach(btn=>{btn.classList.toggle('selected',btn.dataset.mode===mode);btn.setAttribute('aria-pressed',btn.dataset.mode===mode);btn.disabled=locked||state.winner!==null||(btn.dataset.mode!=='move'&&!state.remaining[state.turn]);});
- document.getElementById('undo').disabled=moving||!history.length;document.getElementById('reset').disabled=moving;
- tell(isCpuTurn()?'CPUが手を選んでいます。':state.winner!==null?'ゴールに到達しました。「最初から」でまた遊べます。':mode==='move'?'目印のあるマスを押して、駒を動かしてください。':`${mode==='h'?'横':'縦'}の壁を置きます。マスの間の「＋」を押してください。`);
-}
-document.querySelectorAll('[data-mode]').forEach(btn=>btn.onclick=()=>{if(moving||isCpuTurn())return;mode=btn.dataset.mode;render();});
-document.getElementById('undo').onclick=()=>{if(moving||!history.length)return;cancelCpu();state=history.pop();if(gameType==='cpu')while(state.turn!==0&&history.length)state=history.pop();mode='move';render();};
-document.getElementById('reset').onclick=()=>{if(moving)return;if(history.length&&!confirm('対局を最初からやり直しますか？'))return;cancelCpu();state=fresh();history=[];mode='move';render();};
-// Count moves to the goal, including jumps around the other pawn.
-function goalDistance(s,player){
- const goal=player===0?0:8,queue=[s.pawns[player]],distance=new Int16Array(81).fill(-1);
- distance[queue[0].r*9+queue[0].c]=0;
- for(let i=0;i<queue.length;i++){
-  const a=queue[i],d=distance[a.r*9+a.c];if(a.r===goal)return d;
-  const pawns=s.pawns.slice();pawns[player]=a;
-  for(const b of moves({...s,turn:player,pawns})){const key=b.r*9+b.c;if(distance[key]===-1){distance[key]=d+1;queue.push(b);}}
- }
- return 81;
-}
-function afterAction(s,action){
- const next={...s,pawns:s.pawns.map(p=>({...p})),remaining:s.remaining.slice(),walls:s.walls.slice()};
- if(action.type==='move')next.pawns[s.turn]={r:action.r,c:action.c};
- else{next.walls.push(action.wall);next.remaining[s.turn]--;}
- return next;
-}
-function chooseCpuAction(s,recent=history){
- const player=s.turn,enemy=1-player,goal=player===0?0:8;
- const candidates=moves(s).map(p=>({type:'move',...p}));
- const winning=candidates.find(a=>a.r===goal);if(winning)return winning;
- if(s.remaining[player]>0)for(let r=0;r<8;r++)for(let c=0;c<8;c++)for(const o of ['h','v']){
-  const wall={r,c,o};if(!wallError(wall,s))candidates.push({type:'wall',wall});
- }
- let best=candidates[0],bestScore=-Infinity;
- for(const action of candidates){
-  const next=afterAction(s,action),own=goalDistance(next,player),opponent=goalDistance(next,enemy);
-  let score=opponent-own+.12*(next.remaining[player]-next.remaining[enemy]);
-  // Avoid allowing an immediate win, and save walls unless they buy useful time.
-  if(moves({...next,turn:enemy}).some(p=>p.r===(enemy===0?0:8)))score-=10000;
-  if(action.type==='wall')score-=.3;
-  else{
-   score-=.002*Math.abs(action.c-4);
-   score-=.2*recent.slice(-10).filter(h=>h.walls.length===s.walls.length&&h.pawns[player].r===action.r&&h.pawns[player].c===action.c).length;
-  }
-  if(score>bestScore){bestScore=score;best=action;}
- }
- return best;
-}
-function scheduleCpu(){
- cancelCpu();if(!isCpuTurn()||moving)return;
- const expected=state;
- cpuTimer=setTimeout(()=>{
-  cpuTimer=null;if(state!==expected||!isCpuTurn()||moving)return;
-  const action=chooseCpuAction(state);
-  if(action.type==='move')moveTo(action.r,action.c,true);else place(action.wall,true);
- },280);
-}
-document.getElementById('game-type').onchange=event=>{
- const next=event.target.value;
- if(moving||(history.length&&!confirm('対戦相手を変更して、最初から始めますか？'))){event.target.value=gameType;return;}
- cancelCpu();gameType=next;state=fresh();history=[];mode='move';render();
-};
-state=fresh();render();
+const N=7,CELL=100/N-1.1,board=document.getElementById('board'),byId=id=>document.getElementById(id);let state,mode='move',busy=false,history=[],timer,epoch=0;const images=['black_mouse.png','red_mouse.png','blue_mouse.png','yellow_mouse.png'],loaded=[false,false,false,false],names=['Black','Red','Blue','Yellow'],colors=['black','red','blue','yellow'];
+images.forEach((src,i)=>{const im=new Image;im.onload=()=>{loaded[i]=true;render()};im.src=src});
+function playerCount(){return byId('opponent').value==='four'?4:byId('opponent').value==='three'?3:2}
+function initial(count=playerCount()){const mid=Math.floor(N/2),p=[{x:mid,y:N-1,dir:1},{x:mid,y:0,dir:-1},{x:0,y:mid,dir:1},{x:N-1,y:mid,dir:-1}].slice(0,count);return {p,w:[],stock:Array(count).fill(count===2?8:count===3?5:4),turn:Math.floor(Math.random()*count),winner:null,moves:0}}
+function atGoal(p,i){return i===0?p.y===0:i===1?p.y===N-1:i===2?p.x===N-1:p.x===0}
+function occupied(s,p){return s.p.some(q=>q.x===p.x&&q.y===p.y)}
+const copy=s=>JSON.parse(JSON.stringify(s));
+function inside(x,y){return x>=0&&x<N&&y>=0&&y<N}
+function blocked(s,a,b){return s.w.some(w=>w.o==='h'?a.y!==b.y&&Math.min(a.y,b.y)===w.y&&a.x>=w.x&&a.x<=w.x+1:a.x!==b.x&&Math.min(a.x,b.x)===w.x&&a.y>=w.y&&a.y<=w.y+1)}
+function neighbours(s,p){return [[0,-1],[0,1],[-1,0],[1,0]].map(([dx,dy])=>({x:p.x+dx,y:p.y+dy})).filter(q=>inside(q.x,q.y)&&!blocked(s,p,q))}
+function legalMoves(s,i){const p=s.p[i],out=[];for(const q of neighbours(s,p)){if(!occupied(s,q)){out.push(q);continue}const jump={x:q.x+(q.x-p.x),y:q.y+(q.y-p.y)};if(inside(jump.x,jump.y)&&!blocked(s,q,jump)){if(!occupied(s,jump))out.push(jump)}else for(const d of neighbours(s,q))if((q.x===p.x?d.y===q.y:d.x===q.x)&&!occupied(s,d))out.push(d)}return out.filter((p,j,a)=>a.findIndex(q=>q.x===p.x&&q.y===p.y)===j)}
+function distance(s,i){const q=[{...s.p[i],d:0}],seen=new Set([s.p[i].x+','+s.p[i].y]);for(let j=0;j<q.length;j++){const p=q[j];if(atGoal(p,i))return p.d;for(const n of neighbours(s,p)){const k=n.x+','+n.y;if(!seen.has(k)){seen.add(k);q.push({...n,d:p.d+1})}}}return Infinity}
+function wallOK(s,w){if(!['h','v'].includes(w.o)||!Number.isInteger(w.x)||!Number.isInteger(w.y)||w.x<0||w.y<0||w.x>=N-1||w.y>=N-1)return false;if(s.w.some(a=>a.o===w.o?(a.o==='h'?a.y===w.y&&Math.abs(a.x-w.x)<2:a.x===w.x&&Math.abs(a.y-w.y)<2):a.x===w.x&&a.y===w.y))return false;const t={...s,w:[...s.w,w]};return t.p.every((_,i)=>Number.isFinite(distance(t,i)))}
+function place(el,x,y,w,h){Object.assign(el.style,{left:x+'%',top:y+'%',width:w+'%',height:h+'%'})}
+function render(){board.replaceChildren();const active=!busy&&state.winner===null&&!(byId('opponent').value==='cpu'&&state.turn===1);const legal=legalMoves(state,state.turn);for(let y=0;y<N;y++)for(let x=0;x<N;x++){const el=document.createElement('button');el.className='cell';el.setAttribute('aria-label',`Row ${y+1}, column ${x+1}`);place(el,x*100/N,y*100/N,CELL,CELL);if(active&&mode==='move'&&legal.some(p=>p.x===x&&p.y===y)){el.classList.add('legal');el.onclick=()=>act({x,y})}else el.disabled=true;board.append(el)}
+for(const w of state.w){const el=document.createElement('div');el.className='wall';wallPosition(el,w);board.append(el)}
+if(active&&mode!=='move'&&state.stock[state.turn]>0)for(let y=0;y<N-1;y++)for(let x=0;x<N-1;x++){const w={x,y,o:mode},el=document.createElement('button');el.className='slot';el.setAttribute('aria-label',`${mode==='h'?'Horizontal':'Vertical'} wall at row ${y+1}, column ${x+1}`);wallPosition(el,w,true);if(!wallOK(state,w))el.classList.add('bad');el.onclick=()=>act(w);board.append(el)}
+state.p.forEach((p,i)=>{const el=document.createElement('div');el.className='pawn '+(p.dir===1?'right':'')+(state.winner===null&&i===state.turn&&!busy?' stepping':'');el.dataset.player=i;el.id='pawn'+i;place(el,p.x*100/N,p.y*100/N,CELL,CELL);const sprite=document.createElement('div');if(loaded[i]){sprite.className='sprite';sprite.style.backgroundImage=`url("${images[i]}")`}else sprite.className='fallback';el.append(sprite);board.append(el)});
+byId('stocks').innerHTML=state.stock.map((n,i)=>`<span class="wall-count" aria-label="${names[i]} walls: ${n}"><i class="count-square ${colors[i]}" aria-hidden="true"></i><b>${n}</b></span>`).join('');byId('blueGoal').hidden=state.p.length<3;byId('yellowGoal').hidden=state.p.length<4;document.querySelectorAll('[data-mode]').forEach(b=>{b.classList.toggle('active',b.dataset.mode===mode);b.disabled=!active});byId('undo').disabled=!history.length;}
+function wallPosition(el,w,hit=false){const a=100/N;if(hit){const length=a*.8,thickness=2.6,cx=(w.x+1)*a-.55,cy=(w.y+1)*a-.55;if(w.o==='h')place(el,cx-length/2,cy-thickness/2,length,thickness);else place(el,cx-thickness/2,cy-length/2,thickness,length);return}if(w.o==='h')place(el,w.x*a,(w.y+1)*a-1,a*2-1.1,1.1);else place(el,(w.x+1)*a-1,w.y*a,1.1,a*2-1.1)}
+function message(t){byId('message').textContent=t}
+function act(action,cpu=false){if(busy||state.winner!==null||(!cpu&&state.turn===1&&byId('opponent').value==='cpu'))return;const i=state.turn;if(action.o){if(!state.stock[i]||!wallOK(state,action)){message('Cannot place a wall here.');return}}else if(!legalMoves(state,i).some(p=>p.x===action.x&&p.y===action.y))return;history.push(copy(state));if(action.o){state.w.push(action);state.stock[i]--}else{const p=state.p[i];if(action.x!==p.x)p.dir=action.x>p.x?1:-1;p.x=action.x;p.y=action.y}finish()}
+function finish(){state.moves++;if(atGoal(state.p[state.turn],state.turn))state.winner=state.turn;else state.turn=(state.turn+1)%state.p.length;mode='move';render();message(state.winner!==null?`${names[state.winner]} wins!`:state.turn===1&&byId('opponent').value==='cpu'?'CPU thinking…':'');scheduleCPU()}
+function cpuChoice(s){const i=s.turn,j=1-i,moves=legalMoves(s,i);let best=moves[0],score=Infinity;for(const m of moves){const t=copy(s);t.p[i]={...t.p[i],...m};if(atGoal(m,i))return m;const d=distance(t,i);if(d<score){score=d;best=m}}if(!s.stock[i])return best;const own=distance(s,i),opp=distance(s,j);let bestGain=0.65;for(let y=0;y<N-1;y++)for(let x=0;x<N-1;x++)for(const o of ['h','v']){const w={x,y,o};if(!wallOK(s,w))continue;const t={...s,w:[...s.w,w]},od=distance(t,j),sd=distance(t,i),gain=(od-opp)-(sd-own)*1.3;if(gain>bestGain&&(opp<=own+2||od-opp>=3)){bestGain=gain;best=w}}return best}
+function scheduleCPU(){if(state.winner===null&&state.turn===1&&byId('opponent').value==='cpu'){const token=epoch;timer=setTimeout(()=>{if(token===epoch)act(cpuChoice(state),true)},450)}}
+function cancel(){epoch++;clearTimeout(timer);busy=false}
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;render();message('')});byId('reset').onclick=startGame;byId('opponent').onchange=()=>byId('reset').click();byId('undo').onclick=()=>{if(!history.length)return;cancel();state=history.pop();if(byId('opponent').value==='cpu')while(state.turn===1&&history.length)state=history.pop();mode='move';render();message('Move undone.');scheduleCPU()};startGame();
+function startGame(){cancel();state=initial();history=[];mode='move';render();message(byId('opponent').value==='cpu'&&state.turn===1?'CPU thinking…':'');scheduleCPU()}
 </script></body></html>
